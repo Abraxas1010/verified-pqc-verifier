@@ -60,6 +60,10 @@ def kernel_program_hash(bundle_dir: Path) -> str:
     return sha256_hex((bundle_dir / "kernel.c").read_bytes())
 
 
+def bundle_id(bundle_dir: Path) -> str:
+    return bundle_dir.name
+
+
 def verify_attestation_package(
     pkg: AttestationPackage,
     artifact_sha256: str,
@@ -83,6 +87,8 @@ def verify_attestation_package(
     expected_pkg_id = sha256_hex(manifest_bytes)
     if expected_pkg_id != pkg.package_id:
         failed.append("package_id")
+    if pkg.verification_material.bundle_dir_hint != pkg.manifest.verifier_bundle_id:
+        failed.append("verification_material_bundle_dir_hint")
 
     if pkg.signature.algorithm != "ML-DSA-65":
         failed.append("signature_algorithm")
@@ -111,6 +117,12 @@ def verify_attestation_package(
         bundle_report = verify_certificate(cert_path)
         if not bundle_report["success"]:
             failed.append("cab_certificate")
+        if pkg.manifest.verifier_bundle_id != bundle_id(bundle):
+            failed.append("verifier_bundle_id")
+        if pkg.verification_material.cab_certificate != cert:
+            failed.append("verification_material_cab_certificate")
+        if pkg.verification_material.provenance != prov:
+            failed.append("verification_material_provenance")
         if kernel_program_hash(bundle) != pkg.manifest.verifier_program_hash:
             failed.append("verifier_program_hash")
         if cert.get("merkle_root", "") != pkg.manifest.verifier_certificate_merkle_root:

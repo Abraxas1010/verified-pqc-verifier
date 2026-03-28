@@ -64,6 +64,7 @@ The verifier checks:
 - ML-DSA signature validity
 - CAB certificate integrity
 - verifier bundle identity fields
+- embedded package CAB/provenance material against the pinned local bundle
 
 You can optionally pin an expected signer key:
 

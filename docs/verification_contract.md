@@ -7,6 +7,7 @@
 - the ML-DSA signature verifies
 - the shipped verifier bundle identity checks pass
 - the CAB certificate and provenance checks pass
+- the package's embedded CAB/provenance material matches the pinned local verifier bundle
 
 `accept` does not mean:
 
