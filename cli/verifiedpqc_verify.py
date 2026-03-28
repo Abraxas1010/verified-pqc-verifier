@@ -19,6 +19,7 @@ def main() -> int:
     parser.add_argument("--package", help="path to attestation package json")
     parser.add_argument("--artifact", help="path to the artifact being verified")
     parser.add_argument("--bundle-dir", help="optional path to shipped verifier bundle")
+    parser.add_argument("--issuer-trust-anchor", help="optional path to issuer_trust_anchor.json")
     parser.add_argument("--asset-root", help="optional verifier asset root containing public_material/, vendor/, and scripts/")
     parser.add_argument("--expect-signer-key-sha256", help="optional expected SHA-256 of the raw signer public key")
     parser.add_argument("--version", action="store_true", help="print verifier version and exit")
@@ -45,10 +46,12 @@ def main() -> int:
     pkg = AttestationPackage.model_validate(json.loads(Path(args.package).read_text()))
     artifact_sha = sha256_hex(Path(args.artifact).read_bytes())
     bundle_dir = Path(args.bundle_dir).resolve() if args.bundle_dir else None
+    issuer_trust_anchor = Path(args.issuer_trust_anchor).resolve() if args.issuer_trust_anchor else None
     report = verify_attestation_package(
         pkg,
         artifact_sha256=artifact_sha,
         bundle_dir=bundle_dir,
+        issuer_trust_anchor_path=issuer_trust_anchor,
         expected_signer_key_sha256=args.expect_signer_key_sha256,
     )
     if args.json:

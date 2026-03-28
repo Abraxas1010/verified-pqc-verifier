@@ -29,3 +29,8 @@ Smoke the release as an installed wheel plus unpacked verifier asset bundle:
 ```bash
 ./scripts/smoke_release_artifacts.sh
 ```
+
+The verifier asset bundle includes:
+
+- the shipped verifier CAB bundle under `public_material/verified_pqc_export_bundle/`
+- the fail-closed issuer trust anchor at `public_material/issuer_trust_anchor.json`

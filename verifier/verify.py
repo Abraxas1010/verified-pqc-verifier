@@ -10,6 +10,7 @@ from typing import Any
 
 from .cab import verify_certificate
 from .models import AttestationPackage, VerificationReport
+from .trust_anchor import load_issuer_trust_anchor
 from .version import ATTESTATION_SCHEMA_VERSION, SUPPORTED_SIGNER_METHODS
 
 
@@ -25,6 +26,10 @@ def verifier_root() -> Path:
 
 def default_bundle_dir() -> Path:
     return verifier_root() / "public_material" / "verified_pqc_export_bundle"
+
+
+def default_issuer_trust_anchor_path() -> Path:
+    return verifier_root() / "public_material" / "issuer_trust_anchor.json"
 
 
 def open_cli_path() -> Path:
@@ -91,10 +96,12 @@ def verify_attestation_package(
     artifact_sha256: str,
     *,
     bundle_dir: Path | None = None,
+    issuer_trust_anchor_path: Path | None = None,
     expected_signer_key_sha256: str | None = None,
 ) -> VerificationReport:
     failed: list[str] = []
     bundle = (bundle_dir or default_bundle_dir()).resolve()
+    trust_anchor_path = (issuer_trust_anchor_path or default_issuer_trust_anchor_path()).resolve()
     cert_path = bundle / "certificate.json"
     prov_path = bundle / "provenance.json"
 
@@ -120,6 +127,20 @@ def verify_attestation_package(
         failed.append("public_key_format")
 
     signer_pk = bytes.fromhex(pkg.signature.signer_public_key_hex)
+    trust_anchor_report: dict[str, Any] | None = None
+    if not trust_anchor_path.is_file():
+        failed.append("issuer_trust_anchor_missing")
+    else:
+        trust_anchor = load_issuer_trust_anchor(trust_anchor_path)
+        trust_anchor_report = trust_anchor.model_dump()
+        if trust_anchor.version != "verified-pqc-issuer-trust-anchor-v1":
+            failed.append("issuer_trust_anchor_version")
+        if trust_anchor.signer_method != pkg.signature.signer_method:
+            failed.append("issuer_signer_method")
+        if trust_anchor.signer_key_name != pkg.signature.signer_key_name:
+            failed.append("issuer_signer_key_name")
+        if sha256_hex(signer_pk) != trust_anchor.signer_public_key_sha256.lower():
+            failed.append("signer_public_key_sha256")
     if expected_signer_key_sha256 is not None:
         if sha256_hex(signer_pk) != expected_signer_key_sha256.lower():
             failed.append("signer_public_key_sha256")
@@ -159,6 +180,7 @@ def verify_attestation_package(
         checked_at=now_utc(),
         failed_checks=failed,
         bundle_verification=bundle_report,
+        issuer_trust_anchor=trust_anchor_report,
         manifest_sha256=sha256_hex(manifest_bytes),
         signer_public_key_hex=pkg.signature.signer_public_key_hex,
     )

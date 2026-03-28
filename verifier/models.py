@@ -56,5 +56,6 @@ class VerificationReport(BaseModel):
     checked_at: str
     failed_checks: list[str]
     bundle_verification: dict[str, Any] | None = None
+    issuer_trust_anchor: dict[str, Any] | None = None
     manifest_sha256: str
     signer_public_key_hex: str

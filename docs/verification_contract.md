@@ -14,6 +14,7 @@ Current verifier compatibility contract:
 - the artifact digest matches the manifest
 - the package structure is valid
 - the ML-DSA signature verifies
+- the signer public key matches the shipped issuer trust anchor
 - the shipped verifier bundle identity checks pass
 - the CAB certificate and provenance checks pass
 - the package's embedded CAB/provenance material matches the pinned local verifier bundle

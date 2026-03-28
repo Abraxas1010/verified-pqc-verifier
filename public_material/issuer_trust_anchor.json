@@ -1,0 +1,8 @@
+{
+  "version": "verified-pqc-issuer-trust-anchor-v1",
+  "issuer_label": "VerifiedPQC example issuer",
+  "signer_method": "seeded-ml-dsa",
+  "signer_key_name": null,
+  "signer_public_key_sha256": "6966bfd0dbf9d993f9cbd68063c93a46c4047f5c6ed74ea2a89c702a71484fb0",
+  "notes": "Example trust anchor for the sample attestation package. Replace for production KMS rollout."
+}

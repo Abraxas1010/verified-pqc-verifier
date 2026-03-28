@@ -18,7 +18,7 @@ We humbly thank the collective intelligence of humanity for providing the techno
 
 # VerifiedPQC Verifier
 
-VerifiedPQC Verifier is a standalone offline verifier for VerifiedPQC attestation packages. It verifies artifact digests, ML-DSA signatures, CAB certificate integrity, and verifier-bundle identity without calling the issuing API.
+VerifiedPQC Verifier is a standalone offline verifier for VerifiedPQC attestation packages. It verifies artifact digests, ML-DSA signatures, issuer trust-anchor identity, CAB certificate integrity, and verifier-bundle identity without calling the issuing API.
 
 ## What Is This?
 
@@ -29,7 +29,7 @@ This repo is the public verification surface for VerifiedPQC attestation package
 - offline verification of `verified-pqc-attestation-v1` packages
 - ML-DSA-65 signature verification using the vendored PQClean verifier path
 - shipped CAB/provenance verification for the acceptance bundle
-- optional signer-key pinning by SHA-256
+- shipped issuer trust-anchor verification for the attestation signer
 
 ## Quick Start
 
@@ -75,17 +75,18 @@ The verifier checks:
 
 - artifact digest against the manifest
 - ML-DSA signature validity
+- issuer signing key identity against the shipped trust anchor
 - CAB certificate integrity
 - verifier bundle identity fields
 - embedded package CAB/provenance material against the pinned local bundle
 
-You can optionally pin an expected signer key:
+The verifier ships a fail-closed issuer trust anchor at `public_material/issuer_trust_anchor.json`. You can override it explicitly if needed:
 
 ```bash
 python3 cli/verifiedpqc_verify.py \
   --package examples/sample_attestation.json \
   --artifact examples/sample_artifact.txt \
-  --expect-signer-key-sha256 <hex>
+  --issuer-trust-anchor /path/to/issuer_trust_anchor.json
 ```
 
 For installed-package verification outside a cloned repo, point the CLI at the unpacked verifier asset bundle:
@@ -108,7 +109,7 @@ See:
 - `verifier/`: verification library
 - `cli/`: command-line entrypoint
 - `scripts/`: build and one-command verification helpers
-- `public_material/`: shipped verifier bundle and CAB material
+- `public_material/`: shipped verifier bundle, CAB material, and issuer trust anchor
 - `examples/`: sample artifact and attestation package
 - `vendor/pqc_lattice/`: minimal ML-DSA verifier backend sources
 
