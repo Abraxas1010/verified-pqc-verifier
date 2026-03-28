@@ -54,6 +54,19 @@ python3 cli/verifiedpqc_verify.py \
   --json
 ```
 
+Print the verifier compatibility contract:
+
+```bash
+python3 cli/verifiedpqc_verify.py --print-compatibility
+```
+
+Build release artifacts and smoke them as an installed package plus offline asset bundle:
+
+```bash
+./scripts/build_release_artifacts.sh
+./scripts/smoke_release_artifacts.sh
+```
+
 ## How To Verify
 
 The shipped verifier bundle lives under `public_material/verified_pqc_export_bundle/`.
@@ -75,6 +88,16 @@ python3 cli/verifiedpqc_verify.py \
   --expect-signer-key-sha256 <hex>
 ```
 
+For installed-package verification outside a cloned repo, point the CLI at the unpacked verifier asset bundle:
+
+```bash
+verifiedpqc-verify \
+  --asset-root /path/to/verified-pqc-verifier-asset-bundle \
+  --package /path/to/sample_attestation.json \
+  --artifact /path/to/artifact.bin \
+  --json
+```
+
 See:
 
 - [verification_contract.md](docs/verification_contract.md)
@@ -94,6 +117,8 @@ See:
 `accept` means the package verified under the local verifier rules.
 
 `accept` does not mean the underlying software is safe, bug-free, or semantically proven.
+
+The versioned compatibility contract is defined in [verification_contract.md](docs/verification_contract.md) and emitted by `--print-compatibility`.
 
 ## License
 

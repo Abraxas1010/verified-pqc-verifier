@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,14 +10,29 @@ from typing import Any
 
 from .cab import verify_certificate
 from .models import AttestationPackage, VerificationReport
+from .version import ATTESTATION_SCHEMA_VERSION, SUPPORTED_SIGNER_METHODS
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BUNDLE_DIR = ROOT / "public_material" / "verified_pqc_export_bundle"
-OPEN_CLI = ROOT / "vendor" / "pqc_lattice" / "out" / "dsa_open_cli_3"
-BUILD_SCRIPT = ROOT / "scripts" / "build_dsa_open_cli.sh"
-SCHEMA_VERSION = "verified-pqc-attestation-v1"
-SIGNER_METHODS = {"seeded-ml-dsa", "gcp-kms-ml-dsa-65"}
+
+
+def verifier_root() -> Path:
+    configured = os.environ.get("VERIFIED_PQC_VERIFIER_ROOT", "").strip()
+    if configured:
+        return Path(configured).resolve()
+    return ROOT
+
+
+def default_bundle_dir() -> Path:
+    return verifier_root() / "public_material" / "verified_pqc_export_bundle"
+
+
+def open_cli_path() -> Path:
+    return verifier_root() / "vendor" / "pqc_lattice" / "out" / "dsa_open_cli_3"
+
+
+def build_script_path() -> Path:
+    return verifier_root() / "scripts" / "build_dsa_open_cli.sh"
 
 
 def sha256_hex(data: bytes) -> str:
@@ -36,9 +52,15 @@ def run(cmd: list[str], *, cwd: Path, stdin: bytes | None = None) -> subprocess.
 
 
 def ensure_dsa_backend() -> None:
-    if OPEN_CLI.exists():
+    open_cli = open_cli_path()
+    if open_cli.exists():
         return
-    proc = run(["bash", str(BUILD_SCRIPT)], cwd=ROOT)
+    build_script = build_script_path()
+    if not build_script.is_file():
+        raise RuntimeError(
+            f"missing ML-DSA verifier build script at {build_script}; set VERIFIED_PQC_VERIFIER_ROOT to a verifier asset bundle"
+        )
+    proc = run(["bash", str(build_script)], cwd=verifier_root())
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.decode() or proc.stdout.decode())
 
@@ -52,7 +74,7 @@ def dsa_open_matches(*, pk: bytes, msg: bytes, sm: bytes) -> bool:
         f"msg = {msg.hex()}\n"
         f"sm = {sm.hex()}\n"
     ).encode()
-    proc = run([str(OPEN_CLI)], cwd=ROOT, stdin=payload)
+    proc = run([str(open_cli_path())], cwd=verifier_root(), stdin=payload)
     return proc.returncode == 0
 
 
@@ -72,11 +94,11 @@ def verify_attestation_package(
     expected_signer_key_sha256: str | None = None,
 ) -> VerificationReport:
     failed: list[str] = []
-    bundle = (bundle_dir or DEFAULT_BUNDLE_DIR).resolve()
+    bundle = (bundle_dir or default_bundle_dir()).resolve()
     cert_path = bundle / "certificate.json"
     prov_path = bundle / "provenance.json"
 
-    if pkg.schema_version != SCHEMA_VERSION:
+    if pkg.schema_version != ATTESTATION_SCHEMA_VERSION:
         failed.append("schema_version")
 
     manifest_dict = pkg.manifest.model_dump()
@@ -92,7 +114,7 @@ def verify_attestation_package(
 
     if pkg.signature.algorithm != "ML-DSA-65":
         failed.append("signature_algorithm")
-    if pkg.signature.signer_method not in SIGNER_METHODS:
+    if pkg.signature.signer_method not in SUPPORTED_SIGNER_METHODS:
         failed.append("signer_method")
     if pkg.signature.signer_method == "gcp-kms-ml-dsa-65" and pkg.signature.public_key_format not in {None, "NIST_PQC"}:
         failed.append("public_key_format")
