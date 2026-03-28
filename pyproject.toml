@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verified-pqc-verifier"
+version = "0.1.0"
+description = "Standalone offline verifier for VerifiedPQC attestation packages."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.11,<3"]
+
+[project.scripts]
+verifiedpqc-verify = "cli.verifiedpqc_verify:main"
+
+[tool.setuptools]
+packages = ["verifier", "cli"]

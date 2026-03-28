@@ -1,0 +1,41 @@
+{"version": "cab-export-2",
+ "verification_tier": "gold",
+ "numeric_verification":
+ {"verification_time_seconds": "0.000000",
+  "method": "LeanCP",
+  "latent_dim": 0,
+  "gpu_accelerated": false,
+  "compositional": true,
+  "bounds": null},
+ "merkle_root":
+ "0x1d9c01c33a3be54e03eb931a3e13af2a678302a2312570f14c86a531b3b3b9ab",
+ "lens_id": "verified_pqc_accept_all_checks",
+ "lean_toolchain": "leanprover/lean4:v4.24.0",
+ "generator": "HeytingLean.Meta.LeanTT0.ExportCAB",
+ "description": "VerifiedPQC carried verifier kernel export",
+ "categorical_correspondence": null,
+ "artifacts":
+ [{"sha256":
+   "0x6553a18136960e23e73b1a011dd681ad78994f69a6d3b1c271016bd3dde9743e",
+   "name": "kernel.h"},
+  {"sha256":
+   "0x604293c8b15fde9b3ef8dedebcd3a971bb63aff98e641d04b51d8190b3d7888e",
+   "name": "kernel.c"},
+  {"sha256":
+   "0x95f4c65651a68fd2e2dc43041041a869dd4bb7bba8d9c1414456007663766e6a",
+   "name": "driver.c"},
+  {"sha256":
+   "0xdaa118048e786f120d7b9368454a87e0247af84f5e290234a6eae9e954ef6029",
+   "name": "expected.txt"},
+  {"sha256":
+   "0x89cb9d6cf736a903b533c0cdc53dd0491424c517a5ec163c161cf65781a83ec1",
+   "name": "provenance.json"}],
+ "algo": "sha256",
+ "algebraic_verification":
+ {"theorems":
+  ["HeytingLean.Crypto.VerifiedPQC.verify_acceptAllChecksCertificate",
+   "HeytingLean.LeanCP.Examples.verifiedPQCVerifier_verified"],
+  "lean_modules":
+  ["HeytingLean.Crypto.VerifiedPQC.Programs",
+   "HeytingLean.LeanCP.Examples.VerifiedPQCVerifier"],
+  "dimension_independent": true}}

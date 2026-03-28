@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "VerifiedPQC Verifier"
+message: "If you use this standalone verifier, please cite it using this metadata."
+type: software
+authors:
+  - family-names: "Goodman"
+    given-names: "Ryan"
+repository-code: "https://github.com/Abraxas1010/verified-pqc-verifier"
+license: "Apoth3osis License Stack v1"
+abstract: "Standalone public verifier for VerifiedPQC attestation packages with offline CAB verification and ML-DSA signature checking."
+keywords:
+  - "post-quantum cryptography"
+  - "ML-DSA"
+  - "artifact attestation"
+  - "offline verification"
+  - "formal verification"

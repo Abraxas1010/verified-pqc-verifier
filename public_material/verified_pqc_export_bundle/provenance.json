@@ -1,0 +1,8 @@
+{"theorems":
+ ["verify_acceptAllChecksCertificate", "verifiedPQCVerifier_verified"],
+ "program_id": "verified_pqc_accept_all_checks",
+ "lean_modules":
+ ["HeytingLean.Crypto.VerifiedPQC.Programs",
+  "HeytingLean.LeanCP.Examples.VerifiedPQCVerifier"],
+ "description":
+ "Exported carried verifier kernel for the VerifiedPQC packet path"}
