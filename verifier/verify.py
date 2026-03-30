@@ -52,8 +52,8 @@ def now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def run(cmd: list[str], *, cwd: Path, stdin: bytes | None = None) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(cmd, cwd=cwd, input=stdin, capture_output=True, check=False)
+def run(cmd: list[str], *, cwd: Path, stdin: bytes | None = None, timeout: int = 60) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(cmd, cwd=cwd, input=stdin, capture_output=True, check=False, timeout=timeout)
 
 
 def ensure_dsa_backend() -> None:
@@ -96,12 +96,11 @@ def verify_attestation_package(
     artifact_sha256: str,
     *,
     bundle_dir: Path | None = None,
-    issuer_trust_anchor_path: Path | None = None,
     expected_signer_key_sha256: str | None = None,
 ) -> VerificationReport:
     failed: list[str] = []
     bundle = (bundle_dir or default_bundle_dir()).resolve()
-    trust_anchor_path = (issuer_trust_anchor_path or default_issuer_trust_anchor_path()).resolve()
+    trust_anchor_path = default_issuer_trust_anchor_path().resolve()
     cert_path = bundle / "certificate.json"
     prov_path = bundle / "provenance.json"
 
@@ -126,9 +125,15 @@ def verify_attestation_package(
     if pkg.signature.signer_method == "gcp-kms-ml-dsa-65" and pkg.signature.public_key_format not in {None, "NIST_PQC"}:
         failed.append("public_key_format")
 
-    signer_pk = bytes.fromhex(pkg.signature.signer_public_key_hex)
+    try:
+        signer_pk = bytes.fromhex(pkg.signature.signer_public_key_hex)
+    except ValueError:
+        failed.append("signer_public_key_hex_invalid")
+        signer_pk = b""
     trust_anchor_report: dict[str, Any] | None = None
-    if not trust_anchor_path.is_file():
+    if not signer_pk:
+        failed.append("signer_public_key_empty")
+    elif not trust_anchor_path.is_file():
         failed.append("issuer_trust_anchor_missing")
     else:
         trust_anchor = load_issuer_trust_anchor(trust_anchor_path)
@@ -141,13 +146,25 @@ def verify_attestation_package(
             failed.append("issuer_signer_key_name")
         if sha256_hex(signer_pk) != trust_anchor.signer_public_key_sha256.lower():
             failed.append("signer_public_key_sha256")
-    if expected_signer_key_sha256 is not None:
+    if expected_signer_key_sha256 is not None and signer_pk:
         if sha256_hex(signer_pk) != expected_signer_key_sha256.lower():
             failed.append("signer_public_key_sha256")
 
-    sig_ok = dsa_open_matches(pk=signer_pk, msg=manifest_bytes, sm=bytes.fromhex(pkg.signature.signed_manifest_hex))
-    if not sig_ok:
-        failed.append("signature")
+    try:
+        sm_bytes = bytes.fromhex(pkg.signature.signed_manifest_hex)
+    except ValueError:
+        failed.append("signed_manifest_hex_invalid")
+        sm_bytes = b""
+    if signer_pk and sm_bytes:
+        try:
+            sig_ok = dsa_open_matches(pk=signer_pk, msg=manifest_bytes, sm=sm_bytes)
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            sig_ok = False
+        if not sig_ok:
+            failed.append("signature")
+    else:
+        if "signature" not in failed:
+            failed.append("signature")
 
     bundle_report: dict[str, Any] | None = None
     if not cert_path.is_file():

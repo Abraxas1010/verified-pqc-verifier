@@ -55,7 +55,11 @@ def verify_certificate(cert_path: Path) -> dict[str, object]:
     for artifact in artifacts:
         rel_name = artifact.get("name", "")
         expected_hash = artifact.get("sha256", "")
-        artifact_path = base_dir / rel_name
+        artifact_path = (base_dir / rel_name).resolve()
+        # Guard against path traversal via malicious artifact names (e.g. "../../etc/passwd")
+        if not artifact_path.is_relative_to(base_dir.resolve()):
+            failed.append(f"{rel_name} (path traversal blocked)")
+            continue
         if not artifact_path.is_file():
             failed.append(f"{rel_name} (not found)")
             continue

@@ -1,8 +1,8 @@
 {
   "version": "verified-pqc-issuer-trust-anchor-v1",
-  "issuer_label": "VerifiedPQC example issuer",
-  "signer_method": "seeded-ml-dsa",
-  "signer_key_name": null,
-  "signer_public_key_sha256": "6966bfd0dbf9d993f9cbd68063c93a46c4047f5c6ed74ea2a89c702a71484fb0",
-  "notes": "Example trust anchor for the sample attestation package. Replace for production KMS rollout."
+  "issuer_label": "AgentPMT Quantum-Safe Attestation",
+  "signer_method": "gcp-kms-ml-dsa-65",
+  "signer_key_name": ".../cryptoKeyVersions/1",
+  "signer_public_key_sha256": "7582a2a65fb5e75b3c215b8eec75c374ff77d760741d7892d83cb03515cafaec",
+  "notes": "Production trust anchor for AgentPMT Quantum-Safe File Attestation tool. Public key from Google Cloud KMS ML-DSA-65 signing key."
 }

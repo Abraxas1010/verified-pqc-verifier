@@ -11,16 +11,7 @@ class AttestationManifest(BaseModel):
     artifact_sha256: str
     artifact_size_bytes: int
     artifact_media_type: str
-    product_id: str
-    version: str
-    target_platform: str
-    release_channel: str
-    tenant_id: str
-    policy_id: str
-    source_uri: str | None = None
-    sbom_sha256: str | None = None
-    build_provenance_sha256: str | None = None
-    vulnerability_scan_sha256: str | None = None
+    metadata: dict[str, Any] = {}
     verifier_bundle_id: str
     verifier_program_id: str
     verifier_program_hash: str
